@@ -1,0 +1,7 @@
+[project]
+name = "legalcontract-ai"
+version = "0.1.0"
+description = "An automated legal document clause classifier, summarizer, and evaluator."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
