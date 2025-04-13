@@ -4,4 +4,42 @@ version = "0.1.0"
 description = "An automated legal document clause classifier, summarizer, and evaluator."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "ipykernel>=6.29.5",
+]
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".ipynb_checkpoints",
+    ".ruff_cache",
+    ".venv",
+    "__init__.py",
+    "Old Notebooks",
+]
+line-length = 105
+
+[tool.ruff.lint]
+select = [
+    "D", # pydocstyle
+    "E", # pycodestyle (error)
+    "F", # pyflakes
+    "B", # bugbear
+    "C4", # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "RET", # flake8-return
+    "I", # isort
+    "UP", # pyupgrade
+    "PIE", # flake8-pie
+    "PYI", # flake8-pyi
+    "RUF", # Ruff-specific
+]
+ignore = [
+    "RUF010", # Explicit conversion flag
+    "D203", # 1 blank line required before class docstring
+    "D211", # No blank line before section
+    "D213", # Multi-line docstring summary should start at the second line
+]
+
+[tool.ruff.format]
+quote-style = "double"
