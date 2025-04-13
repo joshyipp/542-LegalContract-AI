@@ -481,3 +481,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project data
+Datasets/ContractNLI/*.*
+Datasets/ContractNLI/*/
+Datasets/CUAD/*.*
+Datasets/CUAD/*/
