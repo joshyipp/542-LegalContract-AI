@@ -1,4 +1,4 @@
-###Using LLM to tag contract types -> finetune LegalBERT on the labeled set
+### Using LLM to tag contract types -> finetune LegalBERT on the labeled set
 
 
 
