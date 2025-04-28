@@ -487,3 +487,4 @@ Datasets/ContractNLI/*.*
 Datasets/ContractNLI/*/
 Datasets/CUAD/*.*
 Datasets/CUAD/*/
+transformers/Scripts/python.exe
