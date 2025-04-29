@@ -8,6 +8,7 @@ dependencies = [
     "ipykernel>=6.29.5",
     "matplotlib>=3.10.1",
     "scikit-learn>=1.6.1",
+    "tqdm>=4.67.1",
 ]
 
 [tool.ruff]
