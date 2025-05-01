@@ -22,6 +22,8 @@
 \begin{abstract}
 	This project aims to develop a high-quality, labeled dataset of legal contract clauses to support AI-driven contract analysis. We introduce a hybrid clause segmentation pipeline that merges regex-based heuristics, semantic similarity using sentence embeddings, and supervised boundary classification to accurately detect clause boundaries in unstructured legal text. Building on this foundation, we assign contract-type-specific clause labels and explore intra-contract relationships by analyzing semantic and structural connections between clauses within the same document. Our work enhances the granularity and contextual understanding of contract language, enabling more robust clause classification, summarization, and fairness analysis.
 \end{abstract}
+The dataset and codebase for this project are publicly available on GitHub at:  
+\href{https://github.com/joshyipp/542-LegalContract-AI}{this REPO}
 
 \section*{Introduction}
 
@@ -29,8 +31,7 @@ Legal contracts are complex documents filled with dense, technical language that
 
 Our project addresses this gap by building a dataset and system capable of accurately identifying and labeling contract clauses. We implement a hybrid clause segmentation pipeline that combines regex-based patterns, semantic similarity modeling, and supervised classification to detect clause boundaries with high precision. After segmentation, we apply contract-type-specific clause categorization and explore intra-contract clause relationships to model how clauses interrelate within the same legal context.
 
-This work contributes a reproducible framework for fine-grained contract analysis, with applications in contract review, compliance checking, and legal summarization. Our code and documentation are available at:
-https://github.com/joshyipp/542-LegalContract-AI.git.
+This work contributes a reproducible framework for fine-grained contract analysis, with applications in contract review, compliance checking, and legal summarization. Our code and documentation are available on \href{https://github.com/joshyipp/542-LegalContract-AI}{this REPO}.
 \section*{Related Work}
 Contract analysis has advanced with new datasets and methods for clause segmentation and labeling. One prominent dataset is the \textit{Contract Understanding Atticus Dataset (CUAD)} curated by the Atticus Project. CUAD v1 contains 510 commercial contracts annotated by lawyers with over 13{,}000 clause labels spanning 41 clause types~\cite{hendrycks2021cuad}. Its task is to identify salient contract passages that matter in legal review. As Hendrycks et al.\ note, CUAD’s expert-annotated corpus “consists of over 13,000 annotations” and enables benchmarking of models on legal clause identification.
 
@@ -156,6 +157,23 @@ Following segmentation, we model semantic and referential relationships between 
 
 These intra-clause connections are embedded as additional metadata into the clause dataset and allow downstream tasks like contextual summarization, contradiction detection, and interactive contract visualization.
 
+\subsubsection*{Topic Modeling with Latent Dirichlet Allocation (LDA)}
+
+To further enrich intra-contract clause connections and uncover latent thematic structures within legal documents, we applied Latent Dirichlet Allocation (LDA), a generative probabilistic model commonly used for topic modeling in text corpora. LDA assumes that each document is a mixture of topics, and each topic is characterized by a distribution over words. This is particularly valuable in legal contexts, where clauses often repeat similar concepts or language across contracts but lack explicit labels.
+
+We used LDA in two distinct ways:
+
+\begin{enumerate}
+    \item \textbf{Intra-Document Topic Modeling}: For each contract, we applied LDA to the clause-level text, treating each line or clause as a document unit. We set the number of topics to 5. The resulting topic distribution for each clause provides insight into thematic roles within the same contract—e.g., identifying that multiple clauses discuss liability, warranties, or governing law. These topic labels are stored per clause and used to suggest intra-document clause connections.
+
+    \item \textbf{Inter-Document Topic Modeling}: To discover global themes across all contracts, we trained an LDA model on the full dataset, treating each entire contract as a single document. This helped in clustering documents by high-level structure and content focus, further informing potential contract-type-specific patterns.
+\end{enumerate}
+
+The outputs from both levels were aggregated into structured dictionaries mapping each clause and document to their respective topics. This enriched the clause metadata with an unsupervised, interpretable view of contract content and helped group related clauses even in the absence of formal section headers or repeated phrasing. The resulting topic-aware data was serialized as a JSON file for downstream use in classification, summarization, and visualization tasks.
+
+\vspace{0.5em}
+\noindent For background on unsupervised learning in feature extraction, see~\cite{coates2011unsupervised}.
+
 
 \section*{Datasets}
 
@@ -194,33 +212,9 @@ Each contract passed through the pipeline is segmented into individual clauses u
     \end{itemize}
 \end{itemize}
 
-\subsubsection*{Topic Modeling with Latent Dirichlet Allocation (LDA)}
-
-To further enrich intra-contract clause connections and uncover latent thematic structures within legal documents, we applied Latent Dirichlet Allocation (LDA), a generative probabilistic model commonly used for topic modeling in text corpora. LDA assumes that each document is a mixture of topics, and each topic is characterized by a distribution over words. This is particularly valuable in legal contexts, where clauses often repeat similar concepts or language across contracts but lack explicit labels.
-
-We used LDA in two distinct ways:
-
-\begin{enumerate}
-    \item \textbf{Intra-Document Topic Modeling}: For each contract, we applied LDA to the clause-level text, treating each line or clause as a document unit. We set the number of topics to 5. The resulting topic distribution for each clause provides insight into thematic roles within the same contract—e.g., identifying that multiple clauses discuss liability, warranties, or governing law. These topic labels are stored per clause and used to suggest intra-document clause connections.
-
-    \item \textbf{Inter-Document Topic Modeling}: To discover global themes across all contracts, we trained an LDA model on the full dataset, treating each entire contract as a single document. This helped in clustering documents by high-level structure and content focus, further informing potential contract-type-specific patterns.
-\end{enumerate}
-
-The outputs from both levels were aggregated into structured dictionaries mapping each clause and document to their respective topics. This enriched the clause metadata with an unsupervised, interpretable view of contract content and helped group related clauses even in the absence of formal section headers or repeated phrasing. The resulting topic-aware data was serialized as a JSON file for downstream use in classification, summarization, and visualization tasks.
-
-\vspace{0.5em}
-\noindent For background on unsupervised learning in feature extraction, see~\cite{coates2011unsupervised}.
-
 \subsection*{Directory Structure and Dataset Access}
 
 Our project repository includes tools to dynamically locate and manage dataset files. The dataset loading logic is encapsulated in the \texttt{find\_dataset.py} module, which searches for the \texttt{Datasets/} directory across levels in the project hierarchy to ensure portability.
-
-\section*{Evaluation Results}
-
-\textit{Describe your evaluation results. What metrics
-will did you use? What baseline from an existing solutions can you compare to?}
-
-Evalutation text here.
 
 
 \section*{Conclusion}
