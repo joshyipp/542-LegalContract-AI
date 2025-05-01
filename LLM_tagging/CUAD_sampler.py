@@ -1,18 +1,58 @@
+"""CUAD Sampler - A utility for sampling and processing contract documents from the CUAD dataset.
+
+This module provides functions for:
+- Cleaning contract text
+- Sampling text files from different years
+- Creating JSON output with processed contract text
+"""
+
+import json
 import os
 import random
-import json
-import re
+
 from tqdm import tqdm
 
 
 def clean_text(text):
+    """Clean the provided text by removing blank lines and condensing to a single string.
+    
+    Parameters
+    ----------
+    text : str
+        The raw text to be cleaned.
+        
+    Returns
+    -------
+    str
+        The cleaned text with blank lines removed and content joined with spaces.
+    """
     # Remove blank lines
     # text = re.sub(r'<0x[a-fA-F0-9]+>', '', text)
-    text = " ".join(line for line in text.splitlines() if line.strip() != "")
-    return text
+    return " ".join(line for line in text.splitlines() if line.strip() != "")
 
 
 def sample_txt_files(root_folder, sample_size, seed):
+    """Sample text files from different years in the given root folder.
+    
+    Parameters
+    ----------
+    root_folder : str
+        Path to the root folder containing year-based subdirectories with txt files.
+    sample_size : int
+        Number of files to sample.
+    seed : int
+        Random seed for reproducibility.
+        
+    Returns
+    -------
+    list
+        List of tuples containing (year, filename) for sampled files.
+        
+    Raises
+    ------
+    ValueError
+        If requested sample size exceeds total available files.
+    """
     random.seed(seed)
     all_files_by_year = {}
 
@@ -47,11 +87,27 @@ def sample_txt_files(root_folder, sample_size, seed):
 
 
 def create_json(root_folder, sampled_files, head_only=False):
+    """Create JSON output data from sampled contract files.
+    
+    Parameters
+    ----------
+    root_folder : str
+        Path to the root folder containing year-based subdirectories with txt files.
+    sampled_files : list
+        List of tuples containing (year, filename) pairs to process.
+    head_only : bool, optional
+        If True, only include the first 512 tokens of each contract. Default is False.
+        
+    Returns
+    -------
+    list
+        List of dictionaries containing contract data with 'id' and 'text' fields.
+    """
     output_data = []
 
     for year, fname in tqdm(sampled_files, desc="Processing files"):
         file_path = os.path.join(root_folder, year, fname)
-        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(file_path, encoding="utf-8", errors="ignore") as f:
             content = f.read()
             cleaned_content = clean_text(content)
 
