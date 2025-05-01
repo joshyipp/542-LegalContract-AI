@@ -19,10 +19,7 @@ def locate(target_dir: str = "Datasets") -> Path:
             return Path(data_dir, target_dir)
         data_dir = data_dir.parent
 
-    raise FileNotFoundError(
-        f"Could not find the {target_dir} directory. "
-        "Please ensure you are running this script from the correct location."
-    )
+    raise FileNotFoundError(f"Could not find the {target_dir} directory. Please ensure you are running this script from the correct location.")
 
 
 if __name__ == "__main__":

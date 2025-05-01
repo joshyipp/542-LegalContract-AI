@@ -15,12 +15,12 @@ from tqdm import tqdm
 
 def clean_text(text):
     """Clean the provided text by removing blank lines and condensing to a single string.
-    
+
     Parameters
     ----------
     text : str
         The raw text to be cleaned.
-        
+
     Returns
     -------
     str
@@ -33,7 +33,7 @@ def clean_text(text):
 
 def sample_txt_files(root_folder, sample_size, seed):
     """Sample text files from different years in the given root folder.
-    
+
     Parameters
     ----------
     root_folder : str
@@ -42,12 +42,12 @@ def sample_txt_files(root_folder, sample_size, seed):
         Number of files to sample.
     seed : int
         Random seed for reproducibility.
-        
+
     Returns
     -------
     list
         List of tuples containing (year, filename) for sampled files.
-        
+
     Raises
     ------
     ValueError
@@ -88,7 +88,7 @@ def sample_txt_files(root_folder, sample_size, seed):
 
 def create_json(root_folder, sampled_files, head_only=False):
     """Create JSON output data from sampled contract files.
-    
+
     Parameters
     ----------
     root_folder : str
@@ -97,7 +97,7 @@ def create_json(root_folder, sampled_files, head_only=False):
         List of tuples containing (year, filename) pairs to process.
     head_only : bool, optional
         If True, only include the first 512 tokens of each contract. Default is False.
-        
+
     Returns
     -------
     list
