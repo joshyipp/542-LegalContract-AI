@@ -28,4 +28,15 @@ A notebook implementing a **hybrid clause segmentation pipeline**. It includes:
 
 ---
 
+### `document_clustering.ipynb`
+
+A notebook implementing a **LDA-based document clustering method**. It includes:
+
+- A method for clustering legal documents based on their content using Latent Dirichlet Allocation (LDA).
+- Techniques for identifying similar clauses across different contracts.
+- A foundation for building a clause-level dataset that can be used for training and evaluation of NLP models.
+- Additional data processing code files (`.py`, `.ipynb`) to support the LDA model and clustering process.
+
+---
+
 These notebooks are central to building a high-quality, labeled clause dataset and support future tasks such as clause classification, polarity detection, and summarization.
