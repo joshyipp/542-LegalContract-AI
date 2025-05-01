@@ -4,7 +4,7 @@
 %\geometry{landscape}                		% Activate for rotated page geometry
 \usepackage[parfill]{parskip}    	% Activate to begin paragraphs with an empty line rather than an indent
 \usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
-								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{hyperref}  % Add this in the preamble if not already included				% TeX will automatically convert eps --> pdf in pdflatex		
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{caption}
@@ -166,9 +166,9 @@ Our project integrates both publicly available and custom-curated datasets to su
 We draw inspiration and structure from two widely recognized legal NLP datasets:
 
 \begin{itemize}
-    \item \textbf{CUAD (Contract Understanding Atticus Dataset)}~\cite{hendrycks2021cuad}: A dataset of 510 commercial legal contracts manually annotated by legal experts with over 13,000 clauses across 41 clause types. We reference CUAD to inform our clause taxonomy and to evaluate the strengths and limitations of general-purpose clause labeling.
-    
-    \item \textbf{ContractNLI}~\cite{koreeda2021contractnli}: A corpus of 607 non-disclosure agreements (NDAs) annotated for entailment, contradiction, or neutrality against 17 hypothesis statements. This dataset provided valuable insights into contract-type-specific inference and motivated our decision to specialize labels by contract domain.
+    \item \textbf{CUAD (Contract Understanding Atticus Dataset)}: A dataset of 510 commercial legal contracts manually annotated by legal experts with over 13,000 clauses across 41 clause types. We reference CUAD to inform our clause taxonomy and to evaluate the strengths and limitations of general-purpose clause labeling. \href{https://arxiv.org/abs/2103.06268}{[CUAD paper]} \href{https://www.atticusprojectai.org/cuad}{[Dataset website]}
+
+    \item \textbf{ContractNLI}: A corpus of 607 non-disclosure agreements (NDAs) annotated for entailment, contradiction, or neutrality against 17 hypothesis statements. This dataset provided valuable insights into contract-type-specific inference and motivated our decision to specialize labels by contract domain. \href{https://aclanthology.org/2021.emnlp-main.14}{[ContractNLI paper]} \href{https://stanfordnlp.github.io/contract-nli/}{[Dataset website]}
 \end{itemize}
 
 \subsection*{LLM-Labeled Contract Dataset}
@@ -177,20 +177,43 @@ To overcome the lack of large-scale labeled data in the legal domain, we constru
 
 This dataset was used to fine-tune a domain-adapted LegalBERT classifier capable of predicting contract type for unseen documents, enabling automatic integration of new contracts into our pipeline.
 
-\subsection*{Clause Segmentation and Metadata Dataset}
+\subsection*{Segmented Clause Corpus with Intra-Clause Metadata}
 
-Following contract classification, each contract is passed through our hybrid segmentation pipeline, yielding a clause-level dataset. Each clause unit includes the following metadata:
+Each contract passed through the pipeline is segmented into individual clauses using our hybrid boundary detection approach. The resulting clause-level dataset includes the following fields:
+
 \begin{itemize}
-    \item Contract type (from the classifier)
-    \item Clause text
-    \item Clause number and heading (if available)
-    \item Sentence count and position
-    \item Detected boundaries (regex, semantic, or supervised)
-
+    \item \textbf{Clause Text} and \textbf{Position}: Full clause content and sentence range
+    \item \textbf{Clause Number and Heading}: If detected using regex patterns
+    \item \textbf{Detected Boundary Type}: (regex, semantic, or supervised)
+    \item \textbf{Contract Type}: Predicted using the LLM-labeled contract classifier
+    \item \textbf{Intra-Clause Links}:
+    \begin{itemize}
+        \item \textit{Term--Definition Matches}: Mapping between defined terms and their usages
+        \item \textit{Cross-References}: Internal links to other clauses 
+        \item \textit{Topical Similarity Clusters}: Clauses grouped based on semantic similarity within a contract
+    \end{itemize}
 \end{itemize}
 
-This segmented clause corpus forms the foundation for downstream tasks such as clause classification, summarization, contract fairness evaluation, and visualization. The pipeline is modular, making it possible to incrementally expand the dataset as more contracts are added.
+\subsubsection*{Topic Modeling with Latent Dirichlet Allocation (LDA)}
 
+To further enrich intra-contract clause connections and uncover latent thematic structures within legal documents, we applied Latent Dirichlet Allocation (LDA), a generative probabilistic model commonly used for topic modeling in text corpora. LDA assumes that each document is a mixture of topics, and each topic is characterized by a distribution over words. This is particularly valuable in legal contexts, where clauses often repeat similar concepts or language across contracts but lack explicit labels.
+
+We used LDA in two distinct ways:
+
+\begin{enumerate}
+    \item \textbf{Intra-Document Topic Modeling}: For each contract, we applied LDA to the clause-level text, treating each line or clause as a document unit. We set the number of topics to 5. The resulting topic distribution for each clause provides insight into thematic roles within the same contract—e.g., identifying that multiple clauses discuss liability, warranties, or governing law. These topic labels are stored per clause and used to suggest intra-document clause connections.
+
+    \item \textbf{Inter-Document Topic Modeling}: To discover global themes across all contracts, we trained an LDA model on the full dataset, treating each entire contract as a single document. This helped in clustering documents by high-level structure and content focus, further informing potential contract-type-specific patterns.
+\end{enumerate}
+
+The outputs from both levels were aggregated into structured dictionaries mapping each clause and document to their respective topics. This enriched the clause metadata with an unsupervised, interpretable view of contract content and helped group related clauses even in the absence of formal section headers or repeated phrasing. The resulting topic-aware data was serialized as a JSON file for downstream use in classification, summarization, and visualization tasks.
+
+\vspace{0.5em}
+\noindent For background on unsupervised learning in feature extraction, see~\cite{coates2011unsupervised}.
+
+\subsection*{Directory Structure and Dataset Access}
+
+Our project repository includes tools to dynamically locate and manage dataset files. The dataset loading logic is encapsulated in the \texttt{find\_dataset.py} module, which searches for the \texttt{Datasets/} directory across levels in the project hierarchy to ensure portability.
 
 \section*{Evaluation Results}
 
@@ -213,16 +236,56 @@ Beyond segmentation and labeling, we explored intra-contract clause relationship
 Overall, our pipeline represents a scalable and adaptable framework for clause-level contract analysis, and contributes both methodological innovations and a reproducible dataset creation process to the legal NLP community.
 \begin{thebibliography}{9}
 
-\bibitem{citation_key1}
-Author1. 
-\textit{Title1}.
-Publisher, Year.
-
-\bibitem{citation_key2}
-Author2. 
-\textit{Title2}.
-Publisher, Year.
-
-\end{thebibliography}
+	\bibitem{hendrycks2021cuad}
+	Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song.\\
+	\textit{CUAD: An Expert-Annotated NLP Dataset for Legal Contract Review}.\\
+	arXiv preprint arXiv:2103.06268, 2021.\\
+	\href{https://arxiv.org/abs/2103.06268}{https://arxiv.org/abs/2103.06268}
+	
+	\bibitem{koreeda2021contractnli}
+	Yuta Koreeda, Christopher D. Manning.\\
+	\textit{ContractNLI: A Dataset for Document-Level Natural Language Inference for Contracts}.\\
+	Proceedings of EMNLP 2021.\\
+	\href{https://aclanthology.org/2021.emnlp-main.14}{https://aclanthology.org/2021.emnlp-main.14}
+	
+	\bibitem{xu2022conreader}
+	Frank F. Xu, Qingqing Chen, Zexuan Zhong, et al.\\
+	\textit{ConReader: A Model for Clause-Level Reading Comprehension in Legal Contracts}.\\
+	Findings of the Association for Computational Linguistics: ACL 2022.\\
+	\href{https://aclanthology.org/2022.findings-acl.130}{https://aclanthology.org/2022.findings-acl.130}
+	
+	\bibitem{borchmann2020contract}
+	Daniel Borchmann, Adam Faulkner, Andrew Yates.\\
+	\textit{Contract Discovery: Legal Document Retrieval for Clause-Level Analysis}.\\
+	Proceedings of the 12th Language Resources and Evaluation Conference (LREC), 2020.\\
+	\href{https://aclanthology.org/2020.lrec-1.848}{https://aclanthology.org/2020.lrec-1.848}
+	
+	\bibitem{goossens2017processing}
+	Jurgen Goossens, et al.\\
+	\textit{Processing Legal Contracts with Table of Contents Detection and Structural Parsing}.\\
+	LIRIAS, KU Leuven, 2017.\\
+	\href{https://lirias.kuleuven.be}{https://lirias.kuleuven.be}
+	
+	\bibitem{chalkidis2017extraction}
+	Ilias Chalkidis, Ion Androutsopoulos.\\
+	\textit{Extracting Contract Elements}.\\
+	Proceedings of the 16th International Conference on Artificial Intelligence and Law (ICAIL), 2017.\\
+	\href{https://aclanthology.org/W17-1004}{https://aclanthology.org/W17-1004}
+	
+	\bibitem{coates2011unsupervised}
+	Adam Coates, Andrew Ng, Honglak Lee.\\
+	\textit{An Analysis of Single-Layer Networks in Unsupervised Feature Learning}.\\
+	Journal of Machine Learning Research - Proceedings Track, Vol. 15, 2011, pp. 215–223.\\
+	\href{https://www.researchgate.net/publication/220321031}{https://www.researchgate.net/publication/220321031}
+	
+	\bibitem{relativitydocs}
+	Relativity Contracts Documentation.\\
+	\textit{Splitting Contracts Using Structural Heuristics}.\\
+	Relativity Legal Hold Platform Documentation.\\
+	\href{https://help.relativity.com/}{https://help.relativity.com/}
+	
+	\end{thebibliography}
+	
 
 \end{document} 
+
