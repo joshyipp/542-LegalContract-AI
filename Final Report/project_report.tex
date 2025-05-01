@@ -142,21 +142,55 @@ We combine boundary signals from all three sources—regex, semantic, and superv
 
 Subclauses (e.g., \texttt{(a)}, \texttt{(b)}) are heuristically merged with their parent clauses to preserve continuity. We also apply post-filtering to discard noise (e.g., page numbers, SEC URLs) using hand-crafted rules.
 
-\subsubsection*{Outcome}
+\subsection*{Intra-Contract Clause Relationship Modeling}
 
-This hybrid segmentation method enables us to extract high-quality clause units from contracts of varying format and complexity. These clause units form the basis for downstream labeling, summarization, and inter-clause relationship modeling in our broader pipeline.
+Following segmentation, we model semantic and referential relationships between clauses within each contract. These intra-contract clause connections include:
 
+\begin{itemize}
+    \item \textbf{Term--Definition Links}: Clauses that define key terms (e.g., “Affiliate means...”) are semantically matched to clauses that contain those terms using TF-IDF-based similarity and phrase matching.
+    
+    \item \textbf{Cross-References}: We detect explicit references such as “See Section 4.2” using regex and link them to the corresponding clause if the section number is available.
+    
+    \item \textbf{Topical Clustering}: We compute pairwise semantic similarities between clauses and apply document-level clustering (e.g., DBSCAN or Agglomerative Clustering) to group clauses with similar function or legal role. This enhances contract structure analysis and redundancy detection.
+\end{itemize}
+
+These intra-clause connections are embedded as additional metadata into the clause dataset and allow downstream tasks like contextual summarization, contradiction detection, and interactive contract visualization.
 
 
 \section*{Datasets}
 
-\textit{Describe the datasets that you used to train and evaluate your
-models. Or if you are doing a dataset project, describe the dataset you
-created. If it is a theoretical
-or algorithmic project, describe any datasets that your theory or algorithm
-may be applicable to.}
+Our project integrates both publicly available and custom-curated datasets to support clause classification, segmentation, and intra-contract analysis.
 
-Dataset text here.
+\subsection*{External Benchmarks}
+
+We draw inspiration and structure from two widely recognized legal NLP datasets:
+
+\begin{itemize}
+    \item \textbf{CUAD (Contract Understanding Atticus Dataset)}~\cite{hendrycks2021cuad}: A dataset of 510 commercial legal contracts manually annotated by legal experts with over 13,000 clauses across 41 clause types. We reference CUAD to inform our clause taxonomy and to evaluate the strengths and limitations of general-purpose clause labeling.
+    
+    \item \textbf{ContractNLI}~\cite{koreeda2021contractnli}: A corpus of 607 non-disclosure agreements (NDAs) annotated for entailment, contradiction, or neutrality against 17 hypothesis statements. This dataset provided valuable insights into contract-type-specific inference and motivated our decision to specialize labels by contract domain.
+\end{itemize}
+
+\subsection*{LLM-Labeled Contract Dataset}
+
+To overcome the lack of large-scale labeled data in the legal domain, we constructed a high-quality contract classification dataset using LLM-assisted annotation. We sampled 5,000 unlabeled legal contracts from a diverse pool and used GPT-4 to label them with one of 16 predefined contract types (e.g., Employment, Sale of Goods, Lease, Licensing). The LLM output included a predicted label, confidence score, and rationale for each instance. A random subset of outputs was manually reviewed to ensure labeling reliability.
+
+This dataset was used to fine-tune a domain-adapted LegalBERT classifier capable of predicting contract type for unseen documents, enabling automatic integration of new contracts into our pipeline.
+
+\subsection*{Clause Segmentation and Metadata Dataset}
+
+Following contract classification, each contract is passed through our hybrid segmentation pipeline, yielding a clause-level dataset. Each clause unit includes the following metadata:
+\begin{itemize}
+    \item Contract type (from the classifier)
+    \item Clause text
+    \item Clause number and heading (if available)
+    \item Sentence count and position
+    \item Detected boundaries (regex, semantic, or supervised)
+
+\end{itemize}
+
+This segmented clause corpus forms the foundation for downstream tasks such as clause classification, summarization, contract fairness evaluation, and visualization. The pipeline is modular, making it possible to incrementally expand the dataset as more contracts are added.
+
 
 \section*{Evaluation Results}
 
@@ -168,11 +202,15 @@ Evalutation text here.
 
 \section*{Conclusion}
 
-\textit{Summarize your project, results and contributions. Describe any
-future work that you or someone else would do if they continued the project.}
+In this project, we developed a comprehensive pipeline for legal contract analysis, focusing on clause-level segmentation, classification, and relationship modeling. Motivated by the limitations of existing datasets such as CUAD and ContractNLI, our work bridges the gap between coarse document-level tasks and fine-grained clause-level understanding.
 
-Conclusion text here.
+We introduced a hybrid clause segmentation framework that merges regex-based structural cues, semantic similarity modeling using sentence embeddings, and supervised boundary detection. This approach proved effective in handling the diverse formatting and complexity of real-world contracts. For contract classification, we demonstrated how large language models such as GPT-4 can be leveraged for high-quality annotation, which enables efficient fine-tuning of smaller models like LegalBERT for scalable deployment. The classification model achieved strong performance across a diverse taxonomy of contract types.
 
+Our framework also supports extensibility: new contracts can be seamlessly incorporated into the dataset by passing them through the classification module to assign contract type, followed by clause boundary detection to extract individual clause units, and finally intra-contract linkage modeling to capture relationships between clauses (e.g., term-definition, contextual dependencies). This modular design enables scalable dataset expansion, making it suitable for iterative annotation, downstream learning tasks, and real-world legal contract analytics.
+
+Beyond segmentation and labeling, we explored intra-contract clause relationships, laying the groundwork for more context-aware downstream applications such as clause summarization, fairness assessment, and contract quality evaluation.
+
+Overall, our pipeline represents a scalable and adaptable framework for clause-level contract analysis, and contributes both methodological innovations and a reproducible dataset creation process to the legal NLP community.
 \begin{thebibliography}{9}
 
 \bibitem{citation_key1}
